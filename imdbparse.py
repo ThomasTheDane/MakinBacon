@@ -14,7 +14,6 @@ def open_gunzip(filename):
     compressed file without uncompressing the whole thing."""
     cmd = 'gunzip -c ' + filename
     fp = os.popen(cmd)
-    print fp
     return fp
 
 def process_file(filename, f, num=float('Inf')):
@@ -22,7 +21,6 @@ def process_file(filename, f, num=float('Inf')):
     for each film, call f() with string arguments:
     actor, date, title, role """
 
-    print 'processing file:', filename
 
     fp = open_gunzip(filename)
     i = 0
@@ -74,7 +72,6 @@ def process_file(filename, f, num=float('Inf')):
             if date == None:
                 print 'BAD2', line
                 continue
-            print 'here 1'
 
             f(actor, date, title, role)
             i += 1
@@ -87,8 +84,7 @@ def process_file(filename, f, num=float('Inf')):
 
 
 if __name__ == '__main__':
-    print 'start'
     def print_info(actor, date, title, role):
-        print actor, date, title, role
+        print actor+',\t'+ date, title
 
     process_file('actors.list.gz', print_info)
