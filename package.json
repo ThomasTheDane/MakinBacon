@@ -6,6 +6,7 @@
     "start": "node server"
   },
   "dependencies": {
+    "semaphore": "*",
     "express": "3.1.0",
     "jade": "*",
     "mongoose": "~3.6.4",
