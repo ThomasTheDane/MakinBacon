@@ -46,7 +46,7 @@ function saveToDB (actorName, movieName) {
     sem.take(function(){
         // console.log('lock')
         Actor.findOne({name: actorName}).exec(function(err, actor){
-            // console.log(actor);
+            console.log(actorName);
             if (err) {
                 return console.log(err);
             };

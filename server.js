@@ -5,16 +5,60 @@ var port = process.env.PORT || 3000;
 server.listen(port);
 
 var mongoose = require('mongoose');
+var models = require('./models'),
+    Actor = models.Actor,
+    Movie = models.Movie;
+
 mongoose.connect('mongodb://localhost/bacon');
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
-db.once('open', function callback () {
-	
-});
-
-app.get('/', function (req, res){
-	
-	res.send('dickbutt');
+app.get('/actorName/:actorName', function (req, res){
+	var actorName = req.params.actorName
+	 Actor.findOne({name: actorName}).exec(function(err, actor){
+	 	console.log(actor);
+	 	console.log(actor.movies);
+	 	// search it up
+		function visit(frontier, fn) {
+		 	var level = 0;
+		    var levels = {};
+	        while (0 < frontier.length) {
+	            var next = [];
+	            for (var i = 0; i < frontier.length; i++) {
+	                var node = frontier[i];
+	                fn(node);
+	                levels[node] = level;
+	                //make a call for actors of movies
+	                nodeActors = [];
+	                for(var movie in node.movies){
+	                	Movie.findOne({name: movie}).exec(function(err, movie){
+	                		nodeActors.push(movie);
+	                	});
+	                }
+            		console.log(nodeActors);
+	                for (var adj in nodeActors) {
+	                    if (typeof levels[adj] === 'undefined') {
+	                        next.push(adj);
+	                    }
+	                }
+	            }
+	            frontier = next;
+	            level += 1;
+	        }
+	    }
+ 	    
+ 	    function bfs(node, fn) {
+	    	visit([node], fn);
+    	}
+		
+		var visited = [];
+		if(actor){
+		    bfs(actor, function (n) {
+		    	console.log(n);
+	        	visited.push(n);
+			});
+		}
+    });
+	res.send(actorName);
 });
