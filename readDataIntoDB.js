@@ -7,6 +7,8 @@ var sem = require('semaphore')(1);
 
 
 mongoose.connect('mongodb://localhost/bacon');
+var prevActor='';
+var prevMovie='';
 
 function readLines(input, func) {
     var remaining = '';
@@ -23,9 +25,10 @@ function readLines(input, func) {
   });
 
     input.on('end', function() {
-        if (remaining.length > 0) {
+        if (remaining.length>0){
             func(remaining);
         };
+        sem.leave();
     });
 }
 
@@ -33,52 +36,63 @@ function func(data) {
     console.log(data);
 }
 
-function storeLine (line) {
+var movieList = [];
+var actorList = [];
+
+function storeLineActor (line) {
     var splitLine = line.split(',\t');
     var actorName = splitLine[0];
     var movieName = splitLine[1];
-    saveToDB(actorName, movieName);
-    // console.log(actorName+'\n'+movieName)
+    storeActors(actorName, movieName);
 };
 
-function saveToDB (actorName, movieName) {
-    // console.log('doing the thing');
-    sem.take(function(){
-        // console.log('lock')
-        Actor.findOne({name: actorName}).exec(function(err, actor){
-            // console.log(actor);
+function storeLineMovie (line) {
+    var splitLine = line.split(',\t');
+    var movieName = splitLine[0];
+    var actorName = splitLine[1];
+    storeMovies(actorName, movieName);        
+};
+
+function storeActors (actorName, movieName){
+    if (prevActor && prevActor != actorName){
+        var actor = new Actor({name:prevActor, movies:movieList});
+        movieList = [];
+        actor.save(function(err){
             if (err) {
                 return console.log(err);
             };
-            if (!actor){
-                actor = new Actor({name: actorName, movies: []});
-            };
-            actor.movies.push(movieName);
-            actor.save(function(err){
-                if (err) {
-                    return console.log(err);
-                };
-                Movie.findOne({name: movieName}).exec(function(err, movie){
-                    if (err) {
-                        return console.log(err);
-                    };
-                    if (!movie){
-                        movie = new Movie({name: movieName, actors: []});
-                    };
-                    movie.actors.push(actorName);
-                    movie.save(function(err){
-                        if (err) {
-                            return console.log(err);
-                        };
-                        console.log(actorName)    
-                        sem.leave();
-                    });
-                });
-            });
         });
-    });
+    };
+    prevActor = actorName;
+
+    if (movieList.indexOf(movieName)==-1){
+        movieList.push(movieName)
+    };
 };
 
-var input = fs.createReadStream('actresses.txt');
-readLines(input, storeLine);
+function storeMovies (actorName, movieName){
+    if (prevMovie && prevMovie != movieName){
+        var movie = new Movie({name:prevMovie, actors:actorList});
+        actorList = [];
+        movie.save(function(err){
+            if (err) {
+                return console.log(err);
+            };
+        });
+    };
+    prevMovie = movieName;
 
+    if (actorList.indexOf(actorName)==-1){
+        actorList.push(actorName)
+    };
+};
+
+sem.take(function(){
+    var actorInput = fs.createReadStream('actresses.txt');
+    readLines(actorInput, storeLineActor);
+});
+
+sem.take(function(){
+    var movieInput = fs.createReadStream('actressmovies.txt');
+    readLines(movieInput, storeLineMovie);
+});

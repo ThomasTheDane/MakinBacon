@@ -85,6 +85,6 @@ def process_file(filename, f, num=float('Inf')):
 
 if __name__ == '__main__':
     def print_info(actor, date, title, role):
-        print actor+',\t'+ date, title
+        print date, title+',\t'+actor
 
     process_file('actresses.list.gz', print_info)
