@@ -16,10 +16,11 @@ db.on('error', console.error.bind(console, 'connection error:'));
 
 app.get('/actorName/:actorName', function (req, res){
 	var actorName = req.params.actorName
-	 Actor.findOne({name: actorName}).exec(function(err, actor){
+ 	Actor.findOne({name: actorName}).exec(function(err, actor){
 	 	console.log(actor);
 	 	console.log(actor.movies);
-	 	// search it up
+
+		// search it up
 		function visit(frontier, fn) {
 		 	var level = 0;
 		    var levels = {};
@@ -36,8 +37,10 @@ app.get('/actorName/:actorName', function (req, res){
 	                		nodeActors.push(movie);
 	                	});
 	                }
-            		console.log(nodeActors);
 	                for (var adj in nodeActors) {
+	                	if(adj.name == "Kevin Bacon"){
+	                		return adj;
+	                	}
 	                    if (typeof levels[adj] === 'undefined') {
 	                        next.push(adj);
 	                    }
